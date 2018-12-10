@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  width:1060px;
+  margin:50px auto;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: #329262;
+}
+
+.bar:hover {
+  fill: #ff9900;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+</style>
+<body>
+<h1> Visualizing Toxicity and Harmful Chemicals Contained in Baby Products </h1>
+<!-- Tab links -->
+<div class="tab">
+  Visualize by:
+  <button onclick="location.href='http://web.stanford.edu/~andreada/cs448b/'" type="button"> Brand </button>
+  <button onclick="location.href='http://web.stanford.edu/~andreada/cs448b/product_subcategory'" type="button"> Product Subcategory </button>
+  <button onclick="location.href='http://web.stanford.edu/~andreada/cs448b/chemicals'" type="button"> Chemical </button>
+</div>
+
+<h2>Average Toxicity Scores of Baby Products when Certain Chemicals are Present</h2>
+
+<p>Hover over the bar graph to see the average toxicity of a brand's baby products.</p>
+<p>Scroll down to learn more about the chemicals featured.</p>
+
+<!-- Tab content -->
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+var margin = {top: 40, right: 20, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// var formatPercent = d3.format(".0%");
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    // .tickFormat(formatPercent);
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return "<strong>Average Toxicity:</strong> <span style='color:red'>" + d.frequency + "</span>";
+  })
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom + 100)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.call(tip);
+
+d3.tsv("data.tsv", type, function(error, data) {
+  x.domain(data.map(function(d) { return d.letter; }));
+  y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+
+    .selectAll("text")
+      .attr("y", 0)
+      .attr("x", 9)
+      .attr("dy", ".35em")
+      .attr("transform", "rotate(90)")
+      .style("text-anchor", "start");
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("y", -20)
+      .attr("x", 35)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Average Toxicity");
+
+  svg.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.letter); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.frequency); })
+      .attr("height", function(d) { return height - y(d.frequency); })
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+
+});
+
+function type(d) {
+  d.frequency = +d.frequency;
+  return d;
+}
+
+</script>
+<h2>Chemicals and Information</h2>
+<p><b>Butylated Hydroxyanisole</b><br> Average Toxicity: 5</p>
+<p>Butylated hydroxyanisole (BHT) is an antioxidant and preservative used in lip products, hair products, makeup, sunscreen, antiperspirant/deodorant, fragrance, and creams. Health concerns relating to this chemical include endocrine disruption, organ-system toxicity, developmental and reproductive toxicity, cancer, irritation.</p>
+<p><b>Cocamide Diethanolamine</b><br> Average Toxicity: 7</p>
+<p>Cocamide diethanolamine (Cocamide DEA) is a chemically-modified coconut oil that is used in bath oil, shampoo, conditioner, and hair dye. Health concerns relating to this chemical include cancer.</p>
+<p><b>Formaldehyde</b><br> Average Toxicity: 10</p>
+<p> Formaldehyde is more often released as a gas from preservatives used in nail polish, nail glue, eyelash glue, hair gel, hair-smoothing products, baby shampoo, body soap, body wash, and color cosmetics. Health concerns relating to this chemical include cancer and skin irritation.</p>
+<p><b>Lead</b><br> Average Toxicity: 10</p>
+<p> Lead is found in lip products, whitening toothpaste, eyeliner, nail color, foundations, sunscreens, eye shadows, blush, concealer, moisturizers, and eye drops. Health concerns relating to this chemical include cancer, developmental and reproductive toxicity, organ system toxicity, and bioaccumulation.</p>
+<p><b>Retinol/Retinyl Esters</b><br> Average Toxicity: 9</p>
+<p>Retinol/retinyl esters is a Vitamin A derivative found in anti-aging creams and lotions, moisturizers, and foundation. Health concerns relating to this chemical include cancer, and developmental and reproductive toxicity.</p>
+<p><b>Retinyl Palmitate</b><br> Average Toxicity: 9</p>
+<p>Retinyl palmitate is composed of palmitic acid and retinol, and is found in creams, gels and medicated pads. Health concerns relating to this chemical include cancer, and developmental and reproductive toxicity.</p>
+<p><b>Styrene</b><br> Average Toxicity: 7</p>
+<p>Styrene is a chemical found in nail polish, sunscreen, sunscreen moisturizer, body wash/cleanser, shampoo and eyeliner. Health concerns relating to this chemical include cancer, changes in the lining of the nose, and damage to the liver.</p>
+<p><b>Talc</b><br> Average Toxicity: 3</p>
+<p>Talc is a mineral substance found in baby powder, body and shower products, lotions, feminine hygiene products, eyeshadow, foundation, lipstick, deodorants and face masks. Health concerns relating to this chemical include rritation, cancer, organ system toxicity.</p>
+<p><b>Titanium Dioxide</b><br> Average Toxicity: 2.063</p>
+<p>Titanium dioxide (TiO2) is a fine powder found in sunscreens, pressed powders, and loose powders. Health concerns relating to this chemical include lung cancer.</p>
+
+<p>(<a href="http://www.safecosmetics.org/get-the-facts/chemicals-of-concern/">Source</a>)</p>
+</body>
